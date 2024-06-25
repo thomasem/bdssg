@@ -47,7 +47,7 @@ class LeafNode(HTMLNode):
             raise ValueError(self.value_required_error)
         if not self.tag:
             return self.value
-        return f'<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>'
+        return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
 
 
 class ParentNode(HTMLNode):

@@ -59,4 +59,27 @@ class TestParentNode(unittest.TestCase):
                              ParentNode.children_required_error)
 
     def test_to_html(self):
-        pass
+        tests = [
+            (('p', [LeafNode('b', 'foo')]), "<p><b>foo</b></p>"),
+            (('p', [
+                LeafNode('b', 'Bold text'),
+                LeafNode(None, 'Normal text'),
+                LeafNode('i', 'italic text'),
+                LeafNode(None, 'Normal text'),
+            ]),
+            "<p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p>"),
+            (('div', [
+                LeafNode('h1', 'heading'),
+                ParentNode('p', [
+                    LeafNode('p', 'paragraph right here!'),
+                    ParentNode('p', [
+                        LeafNode('a', 'linkylink', {'href': "https://u.r.l/"}),
+                    ]),
+                ], {'class': 'myParagraph'}),
+            ], {'class': 'myDiv'}),
+            '<div class="myDiv"><h1>heading</h1><p class="myParagraph"><p>paragraph right here!</p><p><a href="https://u.r.l/">linkylink</a></p></p></div>'
+            ),
+        ]
+        for args, expected in tests:
+            parent = ParentNode(*args)
+            self.assertEqual(expected, parent.to_html())
