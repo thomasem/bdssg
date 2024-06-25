@@ -1,10 +1,10 @@
 import unittest
 
-from htmlnode import HTMLNode, LeafNode
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 
 class TestHTMLNode(unittest.TestCase):
-    def test_init_none(self):
+    def test_empty(self):
         empty = HTMLNode()
         self.assertIsNone(empty.tag)
         self.assertIsNone(empty.value)
@@ -35,6 +35,31 @@ class TestLeafNode(unittest.TestCase):
             leaf = LeafNode(*args)
             self.assertEqual(expected, leaf.to_html())
 
-    def test_init_value_none(self):
+    def test_to_html_value_none(self):
+        leaf = LeafNode('p', None) # type: ignore
         with self.assertRaises(ValueError):
-            leaf = LeafNode(tag='p', value=None)
+            leaf.to_html()
+
+
+class TestParentNode(unittest.TestCase):
+    def test_to_html_no_tag(self):
+        parent = ParentNode(None, [LeafNode('p', "foo")]) # type: ignore
+        with self.assertRaises(ValueError) as error:
+            parent.to_html()
+        self.assertEqual(str(error.exception), ParentNode.tag_required_error)
+
+    def test_to_html_falsy_tag(self):
+        parent = ParentNode('', [LeafNode('p', "foo")])
+        with self.assertRaises(ValueError) as error:
+            parent.to_html()
+        self.assertEqual(str(error.exception), ParentNode.tag_required_error)
+
+    def test_to_html_no_children(self):
+        parent = ParentNode('p', [])
+        with self.assertRaises(ValueError) as error:
+            parent.to_html()
+        self.assertEqual(str(error.exception),
+                         ParentNode.children_required_error)
+
+    def test_to_html(self):
+        pass
