@@ -23,3 +23,14 @@ class HTMLNode:
             f"{self.children},"
             f"{self.props})"
         )
+
+class LeafNode(HTMLNode):
+    def __init__ (self, tag=None, value=None, props=None):
+        if not value:
+            raise ValueError("value required for LeafNode")
+        super().__init__(tag=tag, value=value, props=props)
+
+    def to_html(self):
+        if not self.tag:
+            return self.value
+        return f'<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>'
