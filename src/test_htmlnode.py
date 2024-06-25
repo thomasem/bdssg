@@ -43,20 +43,20 @@ class TestLeafNode(unittest.TestCase):
 
 class TestParentNode(unittest.TestCase):
     def test_to_html_no_tag(self):
-        for tag in [None, '']:
-            parent = ParentNode(tag, [LeafNode('p', "foo")])
+        for tag in (None, ''):
+            parent = ParentNode(tag, [LeafNode('p', "foo")]) # type: ignore
             with self.assertRaises(ValueError) as error:
                 parent.to_html()
             self.assertEqual(str(error.exception),
                              ParentNode.tag_required_error)
 
     def test_to_html_no_children(self):
-        for children in [None, []]:
-            parent = ParentNode('p', children)
+        for children in (None, []):
+            parent = ParentNode('p', children) # type: ignore
             with self.assertRaises(ValueError) as error:
                 parent.to_html()
             self.assertEqual(str(error.exception),
-                            ParentNode.children_required_error)
+                             ParentNode.children_required_error)
 
     def test_to_html(self):
         pass

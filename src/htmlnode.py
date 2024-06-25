@@ -42,7 +42,7 @@ class LeafNode(HTMLNode):
 
     def to_html(self) -> str:
         # NOTE / TODO: checking specifically for None here because an empty
-        # string should be OK? Double-check this!
+        # string seems like it should be OK? Double-check this!
         if self.value is None:
             raise ValueError(self.value_required_error)
         if not self.tag:
