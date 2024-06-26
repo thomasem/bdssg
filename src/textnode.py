@@ -1,8 +1,18 @@
 from typing import Any
+from enum import Enum
+
+
+class TextType(Enum):
+    Normal = "normal"
+    Bold = "bold"
+    Italic = "italic"
+    Code = "code"
+    Link = "link"
+    Image = "image"
 
 
 class TextNode:
-    def __init__(self, text: str, text_type: str, url: str | None = None):
+    def __init__(self, text: str, text_type: TextType, url: str | None = None):
         self.text = text
         self.text_type = text_type
         self.url = url
@@ -17,4 +27,4 @@ class TextNode:
         ])
 
     def __repr__(self):
-        return f"TextNode({self.text}, {self.text_type}, {self.url})"
+        return f"TextNode({self.text}, {self.text_type.value}, {self.url})"
