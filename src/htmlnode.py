@@ -24,7 +24,7 @@ class HTMLNode:
             prop_string += f' {key}="{value}"'
         return prop_string
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"HTMLNode("
             f"{self.tag},"
             f"{self.value},"
@@ -41,13 +41,17 @@ class LeafNode(HTMLNode):
         super().__init__(tag=tag, value=value, props=props)
 
     def to_html(self) -> str:
-        # NOTE / TODO: checking specifically for None here because an empty
-        # string seems like it should be OK? Double-check this!
+        # NOTE(thomasem): checking specifically for None here because an empty
+        # string is an OK value
         if self.value is None:
             raise ValueError(self.value_required_error)
         if not self.tag:
             return self.value
         return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
+
+    def __repr__(self) -> str:
+        return f"LeafNode({self.tag}, {self.value}, {self.props})"
+
 
 
 class ParentNode(HTMLNode):
@@ -68,3 +72,6 @@ class ParentNode(HTMLNode):
         for child in self.children:
             html += f"{child.to_html()}"
         return html + f"</{self.tag}>"
+
+    def __repr__(self) -> str:
+        return f"ParentNode({self.tag}, {self.children}, {self.props})"
