@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Any, TypeVar
 
 
 HTMLNodeType = TypeVar('HTMLNodeType', bound='HTMLNode')
@@ -23,7 +23,17 @@ class HTMLNode:
         for key, value in self.props.items():
             prop_string += f' {key}="{value}"'
         return prop_string
-    
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, HTMLNode):
+            return NotImplemented
+        return all([
+            self.tag == other.tag,
+            self.value == other.value,
+            self.children == other.children,
+            self.props == other.props,
+        ])
+
     def __repr__(self) -> str:
         return (f"HTMLNode("
             f"{self.tag},"
@@ -58,7 +68,7 @@ class ParentNode(HTMLNode):
     tag_required_error = "tag required for ParentNode"
     children_required_error = "children required for ParentNode"
 
-    def __init__(self, tag: str, children: list[HTMLNodeType],
+    def __init__(self, tag: str, children: list[HTMLNode],
                  props: dict[str, str] | None = None):
         super().__init__(tag=tag, children=children, props=props)
 

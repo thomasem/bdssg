@@ -22,6 +22,32 @@ class TestHTMLNode(unittest.TestCase):
             node = HTMLNode(props=props)
             self.assertEqual(expected, node.props_to_html())
 
+    def test_eq_positive(self):
+        tests = [
+            (HTMLNode(), HTMLNode()),
+            (HTMLNode('p', "", [], {}), HTMLNode('p', "", [], {})),
+            (HTMLNode('b', None), HTMLNode('b', None)),
+            (HTMLNode('a', props={"href": "https://u.r.l/"}),
+             HTMLNode('a', props={"href": "https://u.r.l/"})),
+            (HTMLNode('div', None, [HTMLNode('p', "foo")]),
+             HTMLNode('div', None, [HTMLNode('p', "foo")])),
+        ]
+        for first, second in tests:
+            self.assertEqual(first, second)
+
+    def test_eq_negative(self):
+        tests = [
+            (HTMLNode(), HTMLNode('b')),
+            (HTMLNode('p', "", [], {}), HTMLNode('b', "", [], {})),
+            (HTMLNode('b', None), HTMLNode('i', None)),
+            (HTMLNode('a', props={"href": "https://u.r.l/", "class": "c1"}),
+             HTMLNode('a', props={"href": "https://u.r.l/"})),
+            (HTMLNode('div', None, [HTMLNode('p', "foo")]),
+             HTMLNode('div', None, [HTMLNode('b', "foo")])),
+        ]
+        for first, second in tests:
+            self.assertNotEqual(first, second)
+
 
 class TestLeafNode(unittest.TestCase):
     def test_to_html(self):
