@@ -1,6 +1,10 @@
 import unittest
 
-from parse import split_nodes_delimiter
+from parse import (
+    extract_markdown_images,
+    extract_markdown_links,
+    split_nodes_delimiter,
+)
 from textnode import TextNode, TextType
 
 
@@ -117,6 +121,77 @@ class TestSplitNodesDelimiter(unittest.TestCase):
             TextNode(".", TextType.Text),
         ]
         self.assertEqual(expected, results)
+
+
+class TestExtractMarkdownImages(unittest.TestCase):
+    def test_extract_markdown_images(self):
+        tests = [
+            ("![at the beginning](foo.com)",
+             [("at the beginning", "foo.com")]),
+            ("this one is ![in the middle](foo.com) of the text",
+             [("in the middle", "foo.com")]),
+            ("with this one ![at the end](foo.com)",
+             [("at the end", "foo.com")])
+        ]
+        for text, expected in tests:
+            results = extract_markdown_images(text)
+            self.assertEqual(expected, results)
+
+    def test_extract_markdown_images_many(self):
+        text = ("there is ![one here](http://foo.bar.baz/) and then"
+                "![this one](https://i.am.url/) here")
+        expected = [
+            ("one here", "http://foo.bar.baz/"),
+            ("this one", "https://i.am.url/"),
+        ]
+        result = extract_markdown_images(text)
+        self.assertEqual(expected, result)
+
+    def test_extract_markdown_images_negative(self):
+        tests = [
+            ("this is not! an [image](http://but.a.link) here", []),
+            ("this is a [link](foo.baz) and ![image](http://hehe.com)",
+             [("image", "http://hehe.com")]),
+        ]
+        for text, expected in tests:
+            result = extract_markdown_images(text)
+            self.assertEqual(expected, result)
+
+
+class TestExtractMarkdownLinks(unittest.TestCase):
+    def test_extract_markdown_links(self):
+        tests = [
+            ("[at the beginning](foo.com)",
+             [("at the beginning", "foo.com")]),
+            ("this one is [in the middle](foo.com) of the text",
+             [("in the middle", "foo.com")]),
+            ("with this one [at the end](foo.com)",
+             [("at the end", "foo.com")])
+        ]
+        for text, expected in tests:
+            results = extract_markdown_links(text)
+            self.assertEqual(expected, results)
+
+    def test_extract_markdown_images_many(self):
+        text = ("there is [one here](http://foo.bar.baz/) and then"
+                "[this one](https://i.am.url/) here")
+        expected = [
+            ("one here", "http://foo.bar.baz/"),
+            ("this one", "https://i.am.url/"),
+        ]
+        result = extract_markdown_links(text)
+        self.assertEqual(expected, result)
+
+    def test_extract_markdown_images_negative(self):
+        tests = [
+            ("this is not a ![link](http://but.an.image) here", []),
+            ("this is a [link](foo.baz) and ![image](http://hehe.com)",
+             [("link", "foo.baz")]),
+        ]
+        for text, expected in tests:
+            result = extract_markdown_links(text)
+            self.assertEqual(expected, result)
+
 
 if __name__ == "__main__":
     unittest.main()
