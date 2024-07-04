@@ -75,3 +75,43 @@ def split_nodes_delimiter(
             else:
                 new_nodes.append(TextNode(parts[i], text_type))
     return new_nodes
+
+
+def split_nodes_extractor(
+    old_nodes: list[TextNode],
+    extractor: Extractor,
+) -> list[TextNode]:
+    """Splits the provided nodes based on what's found by a passed in extractor
+    """
+    new_nodes = []
+    for node in old_nodes:
+        if node.text_type != TextType.Text:
+            new_nodes.append(node)
+            continue
+
+        images = extractor.extract(node.text)
+        if not images:
+            new_nodes.append(node)
+            continue
+
+        leftover = node.text
+        for extract in images:
+            split_str = extractor.string_from_extract(extract)
+            new_node = TextNode(extract[0], extractor.text_type(), extract[1])
+            # ensure only one split, in case of duplicates which we'll get to
+            # in subsequent iterations
+            parts = leftover.split(split_str, 1)
+            if parts[0] == "":
+                new_nodes.append(new_node)
+            else:
+                new_nodes.extend([TextNode(parts[0], TextType.Text), new_node])
+
+            if len(parts) > 1:
+                leftover = parts[1]
+            else:
+                leftover = ""
+
+        if leftover:
+            new_nodes.append(TextNode(leftover, TextType.Text))
+
+    return new_nodes

@@ -1,6 +1,6 @@
 import unittest
 
-from parse import ImageExtractor, LinkExtractor, split_nodes_delimiter
+from parse import ImageExtractor, LinkExtractor, split_nodes_delimiter, split_nodes_extractor
 from textnode import TextNode, TextType
 
 
@@ -203,6 +203,94 @@ class TestLinkExtractor(unittest.TestCase):
         expected = "[link text](https://i.am.url/)"
         result = self.extractor.string_from_extract(extract)
         self.assertEqual(expected, result)
+
+
+class TestSplitNodesExtractor(unittest.TestCase):
+    def test_split_nodes_images(self):
+        text = TextNode((
+            "This is text with an "
+            "![image](https://i.am.url/cat.png)"
+            " and another "
+            "![second image](https://i.am.url/dog.png)"
+            " right here"
+        ), TextType.Text)
+        expected = [
+            TextNode("This is text with an ", TextType.Text),
+            TextNode("image", TextType.Image, "https://i.am.url/cat.png"),
+            TextNode(" and another ", TextType.Text),
+            TextNode("second image", TextType.Image,
+                     "https://i.am.url/dog.png"),
+            TextNode(" right here", TextType.Text),
+        ]
+        results = split_nodes_extractor([text], ImageExtractor())
+        self.assertEqual(expected, results)
+
+    def test_split_nodes_one_image(self):
+        text = TextNode("![image](https://i.am.url/cat.png)", TextType.Text)
+        expected = [
+            TextNode("image", TextType.Image, "https://i.am.url/cat.png"),
+        ]
+        results = split_nodes_extractor([text], ImageExtractor())
+        self.assertEqual(expected, results)
+
+    def test_split_nodes_image_mixed(self):
+        text = TextNode((
+            "This is text with an "
+            "![image](https://i.am.url/cat.png)"
+            " and a [link](https://i.am.url/link) right here"
+        ), TextType.Text)
+        expected = [
+            TextNode("This is text with an ", TextType.Text),
+            TextNode("image", TextType.Image, "https://i.am.url/cat.png"),
+            TextNode(" and a [link](https://i.am.url/link) right here",
+                     TextType.Text),
+        ]
+        results = split_nodes_extractor([text], ImageExtractor())
+        self.assertEqual(expected, results)
+
+    def test_split_nodes_links(self):
+        text = TextNode((
+            "This is text with an "
+            "[link](https://i.am.url/link)"
+            " and another "
+            "[second link](https://i.am.url/second)"
+            " right here"
+        ), TextType.Text)
+        expected = [
+            TextNode("This is text with an ", TextType.Text),
+            TextNode("link", TextType.Link, "https://i.am.url/link"),
+            TextNode(" and another ", TextType.Text),
+            TextNode("second link", TextType.Link,
+                     "https://i.am.url/second"),
+            TextNode(" right here", TextType.Text),
+        ]
+        results = split_nodes_extractor([text], LinkExtractor())
+        self.assertEqual(expected, results)
+
+    def test_split_nodes_one_link(self):
+        text = TextNode("[link](https://i.am.url/link)", TextType.Text)
+        expected = [
+            TextNode("link", TextType.Link, "https://i.am.url/link"),
+        ]
+        results = split_nodes_extractor([text], LinkExtractor())
+        self.assertEqual(expected, results)
+
+    def test_split_nodes_link_mixed(self):
+        text = TextNode((
+            "This is text with an "
+            "![image](https://i.am.url/cat.png)"
+            " and a [link](https://i.am.url/link) right here"
+        ), TextType.Text)
+        expected = [
+            TextNode((
+                "This is text with an ![image](https://i.am.url/cat.png) "
+                "and a "
+            ), TextType.Text),
+            TextNode("link", TextType.Link, "https://i.am.url/link"),
+            TextNode(" right here", TextType.Text),
+        ]
+        results = split_nodes_extractor([text], LinkExtractor())
+        self.assertEqual(expected, results)
 
 
 if __name__ == "__main__":
