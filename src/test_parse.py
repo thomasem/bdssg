@@ -1,10 +1,6 @@
 import unittest
 
-from parse import (
-    extract_markdown_images,
-    extract_markdown_links,
-    split_nodes_delimiter,
-)
+from parse import ImageExtractor, LinkExtractor, split_nodes_delimiter
 from textnode import TextNode, TextType
 
 
@@ -123,8 +119,10 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         self.assertEqual(expected, results)
 
 
-class TestExtractMarkdownImages(unittest.TestCase):
-    def test_extract_markdown_images(self):
+class TestImageExtractor(unittest.TestCase):
+    extractor = ImageExtractor()
+
+    def test_extract(self):
         tests = [
             ("![at the beginning](foo.com)",
              [("at the beginning", "foo.com")]),
@@ -134,32 +132,40 @@ class TestExtractMarkdownImages(unittest.TestCase):
              [("at the end", "foo.com")])
         ]
         for text, expected in tests:
-            results = extract_markdown_images(text)
+            results = self.extractor.extract(text)
             self.assertEqual(expected, results)
 
-    def test_extract_markdown_images_many(self):
+    def test_extract_many(self):
         text = ("there is ![one here](http://foo.bar.baz/) and then"
                 "![this one](https://i.am.url/) here")
         expected = [
             ("one here", "http://foo.bar.baz/"),
             ("this one", "https://i.am.url/"),
         ]
-        result = extract_markdown_images(text)
+        result = self.extractor.extract(text)
         self.assertEqual(expected, result)
 
-    def test_extract_markdown_images_negative(self):
+    def test_extract_negative(self):
         tests = [
             ("this is not! an [image](http://but.a.link) here", []),
             ("this is a [link](foo.baz) and ![image](http://hehe.com)",
              [("image", "http://hehe.com")]),
         ]
         for text, expected in tests:
-            result = extract_markdown_images(text)
+            result = self.extractor.extract(text)
             self.assertEqual(expected, result)
 
+    def test_string_from_extract(self):
+        extract = ("alt text", "https://i.am.url/")
+        expected = "![alt text](https://i.am.url/)"
+        result = self.extractor.string_from_extract(extract)
+        self.assertEqual(expected, result)
 
-class TestExtractMarkdownLinks(unittest.TestCase):
-    def test_extract_markdown_links(self):
+
+class TestLinkExtractor(unittest.TestCase):
+    extractor = LinkExtractor()
+
+    def test_extract(self):
         tests = [
             ("[at the beginning](foo.com)",
              [("at the beginning", "foo.com")]),
@@ -169,28 +175,34 @@ class TestExtractMarkdownLinks(unittest.TestCase):
              [("at the end", "foo.com")])
         ]
         for text, expected in tests:
-            results = extract_markdown_links(text)
+            results = self.extractor.extract(text)
             self.assertEqual(expected, results)
 
-    def test_extract_markdown_images_many(self):
+    def test_extract_many(self):
         text = ("there is [one here](http://foo.bar.baz/) and then"
                 "[this one](https://i.am.url/) here")
         expected = [
             ("one here", "http://foo.bar.baz/"),
             ("this one", "https://i.am.url/"),
         ]
-        result = extract_markdown_links(text)
+        result = self.extractor.extract(text)
         self.assertEqual(expected, result)
 
-    def test_extract_markdown_images_negative(self):
+    def test_extract_negative(self):
         tests = [
             ("this is not a ![link](http://but.an.image) here", []),
             ("this is a [link](foo.baz) and ![image](http://hehe.com)",
              [("link", "foo.baz")]),
         ]
         for text, expected in tests:
-            result = extract_markdown_links(text)
+            result = self.extractor.extract(text)
             self.assertEqual(expected, result)
+
+    def test_string_from_extract(self):
+        extract = ("link text", "https://i.am.url/")
+        expected = "[link text](https://i.am.url/)"
+        result = self.extractor.string_from_extract(extract)
+        self.assertEqual(expected, result)
 
 
 if __name__ == "__main__":
