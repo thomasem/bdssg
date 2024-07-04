@@ -1,6 +1,11 @@
 import unittest
 
-from parse import ImageExtractor, LinkExtractor, split_nodes_delimiter, split_nodes_extractor
+from parse import (
+    ImageExtractor,
+    LinkExtractor,
+    split_nodes_delimiter,
+    split_nodes_extractor
+)
 from textnode import TextNode, TextType
 
 
