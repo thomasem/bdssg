@@ -4,7 +4,7 @@ from textnode import TextNode, TextType
 
 
 # TODO: Consider Extract classes that encapsulates the logic for converting
-# to a TextNode, which would help handle cases where the extract doesn't
+# to a TextNode, which would help handle cases where the extract isn't
 # two strings, like the tuple[str, str] from extracting an image or a link
 
 
@@ -113,5 +113,18 @@ def split_nodes_extractor(
 
         if leftover:
             new_nodes.append(TextNode(leftover, TextType.Text))
+
+    return new_nodes
+
+
+def text_to_textnodes(text: str) -> list[TextNode]:
+    """This is done in a specific order to avoid false-positives"""
+    new_nodes = [TextNode(text)]
+    for extractor in (ImageExtractor(), LinkExtractor()):
+        new_nodes = split_nodes_extractor(new_nodes, extractor)
+
+    new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.Bold)
+    new_nodes = split_nodes_delimiter(new_nodes, "*", TextType.Italic)
+    new_nodes = split_nodes_delimiter(new_nodes, "`", TextType.Code)
 
     return new_nodes

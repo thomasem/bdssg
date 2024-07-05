@@ -4,7 +4,8 @@ from parse import (
     ImageExtractor,
     LinkExtractor,
     split_nodes_delimiter,
-    split_nodes_extractor
+    split_nodes_extractor,
+    text_to_textnodes,
 )
 from textnode import TextNode, TextType
 
@@ -295,6 +296,28 @@ class TestSplitNodesExtractor(unittest.TestCase):
             TextNode(" right here", TextType.Text),
         ]
         results = split_nodes_extractor([text], LinkExtractor())
+        self.assertEqual(expected, results)
+
+
+
+class TestTextToTextNodes(unittest.TestCase):
+    def test_text_to_textnodes(self):
+        text = ("This is **text** with an *italic* word and a `code block` "
+        "and an ![image](https://i.am.url/image) and a "
+        "[link](https://i.am.url/link)")
+        expected = [
+            TextNode("This is ", TextType.Text),
+            TextNode("text", TextType.Bold),
+            TextNode(" with an ", TextType.Text),
+            TextNode("italic", TextType.Italic),
+            TextNode(" word and a ", TextType.Text),
+            TextNode("code block", TextType.Code),
+            TextNode(" and an ", TextType.Text),
+            TextNode("image", TextType.Image, "https://i.am.url/image"),
+            TextNode(" and a ", TextType.Text),
+            TextNode("link", TextType.Link, "https://i.am.url/link")
+        ]
+        results = text_to_textnodes(text)
         self.assertEqual(expected, results)
 
 
