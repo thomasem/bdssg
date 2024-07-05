@@ -124,6 +124,11 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         ]
         self.assertEqual(expected, results)
 
+    def test_split_nodes_delimiter_unclosed(self):
+        text = "I **can't do that, Dave."
+        with self.assertRaises(ValueError) as error:
+            split_nodes_delimiter([TextNode(text)], "**", TextType.Bold)
+
 
 class TestImageExtractor(unittest.TestCase):
     extractor = ImageExtractor()
@@ -298,6 +303,23 @@ class TestSplitNodesExtractor(unittest.TestCase):
         results = split_nodes_extractor([text], LinkExtractor())
         self.assertEqual(expected, results)
 
+    def test_split_nodes_link_last(self):
+        text = TextNode("lookie [link](https://i.am.url/link)", TextType.Text)
+        expected = [
+            TextNode("lookie ", TextType.Text),
+            TextNode("link", TextType.Link, "https://i.am.url/link"),
+        ]
+        results = split_nodes_extractor([text], LinkExtractor())
+        self.assertEqual(expected, results)
+
+    def test_split_nodes_link_first(self):
+        text = TextNode("[link](https://i.am.url/link) look!", TextType.Text)
+        expected = [
+            TextNode("link", TextType.Link, "https://i.am.url/link"),
+            TextNode(" look!", TextType.Text),
+        ]
+        results = split_nodes_extractor([text], LinkExtractor())
+        self.assertEqual(expected, results)
 
 
 class TestTextToTextNodes(unittest.TestCase):
@@ -316,6 +338,25 @@ class TestTextToTextNodes(unittest.TestCase):
             TextNode("image", TextType.Image, "https://i.am.url/image"),
             TextNode(" and a ", TextType.Text),
             TextNode("link", TextType.Link, "https://i.am.url/link")
+        ]
+        results = text_to_textnodes(text)
+        self.assertEqual(expected, results)
+
+    def test_text_to_textnodes_reverse(self):
+        text = ("This is a [link](https://i.am.url/link) and an "
+        "![image](https://i.am.url/image) and **text** with an *italic* word "
+        "and a `code block`")
+        expected = [
+            TextNode("This is a ", TextType.Text),
+            TextNode("link", TextType.Link, "https://i.am.url/link"),
+            TextNode(" and an ", TextType.Text),
+            TextNode("image", TextType.Image, "https://i.am.url/image"),
+            TextNode(" and ", TextType.Text),
+            TextNode("text", TextType.Bold),
+            TextNode(" with an ", TextType.Text),
+            TextNode("italic", TextType.Italic),
+            TextNode(" word and a ", TextType.Text),
+            TextNode("code block", TextType.Code),
         ]
         results = text_to_textnodes(text)
         self.assertEqual(expected, results)

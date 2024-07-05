@@ -89,13 +89,13 @@ def split_nodes_extractor(
             new_nodes.append(node)
             continue
 
-        images = extractor.extract(node.text)
-        if not images:
+        extracts = extractor.extract(node.text)
+        if not extracts:
             new_nodes.append(node)
             continue
 
         leftover = node.text
-        for extract in images:
+        for extract in extracts:
             split_str = extractor.string_from_extract(extract)
             new_node = TextNode(extract[0], extractor.text_type(), extract[1])
             # ensure only one split, in case of duplicates which we'll get to
@@ -106,10 +106,7 @@ def split_nodes_extractor(
             else:
                 new_nodes.extend([TextNode(parts[0], TextType.Text), new_node])
 
-            if len(parts) > 1:
-                leftover = parts[1]
-            else:
-                leftover = ""
+            leftover = parts[1]
 
         if leftover:
             new_nodes.append(TextNode(leftover, TextType.Text))
