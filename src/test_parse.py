@@ -3,6 +3,7 @@ import unittest
 from parse import (
     ImageExtractor,
     LinkExtractor,
+    markdown_to_blocks,
     split_nodes_delimiter,
     split_nodes_extractor,
     text_to_textnodes,
@@ -359,6 +360,27 @@ class TestTextToTextNodes(unittest.TestCase):
             TextNode("code block", TextType.Code),
         ]
         results = text_to_textnodes(text)
+        self.assertEqual(expected, results)
+
+
+class TestMarkdownToBlocks(unittest.TestCase):
+    def test_markdown_to_blocks(self):
+        markdown = """
+This is **bolded** paragraph
+
+This is another paragraph with *italic* text and `code` here
+This is the same paragraph on a new line
+
+* This is a list
+* with items
+"""
+        expected = [
+            "This is **bolded** paragraph",
+            ("This is another paragraph with *italic* text and `code` here\n"
+             "This is the same paragraph on a new line"),
+            "* This is a list\n* with items",
+        ]
+        results = markdown_to_blocks(markdown)
         self.assertEqual(expected, results)
 
 

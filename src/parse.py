@@ -125,3 +125,11 @@ def text_to_textnodes(text: str) -> list[TextNode]:
     new_nodes = split_nodes_delimiter(new_nodes, "`", TextType.Code)
 
     return new_nodes
+
+
+def markdown_to_blocks(markdown: str) -> list[str]:
+    blocks = []
+    for part in markdown.split("\n\n"):
+        if part != "":
+            blocks.append(part.strip())
+    return blocks
