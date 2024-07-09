@@ -1,15 +1,20 @@
 import unittest
 
 from blocks import (
-    BlockType,
+    Code,
+    Heading,
+    OrderedList,
+    Paragraph,
+    Quote,
+    UnorderedList,
     block_to_block_type,
-    markdown_to_blocks,
+    markdown_to_block_strings,
 )
 import textnode as tn
 
 
 class TestMarkdownToBlocks(unittest.TestCase):
-    def test_markdown_to_blocks(self):
+    def test_markdown_to_block_strings(self):
         markdown = """
 This is **bolded** paragraph
 
@@ -25,7 +30,7 @@ This is the same paragraph on a new line
              "This is the same paragraph on a new line"),
             "* This is a list\n* with items",
         ]
-        results = markdown_to_blocks(markdown)
+        results = markdown_to_block_strings(markdown)
         self.assertEqual(expected, results)
 
 
@@ -40,18 +45,18 @@ class TestBlockToBlockType(unittest.TestCase):
             "###### Essentials",
             "1. apples\n4. beer\n5. beer\n6. soft pretzels\n10. mustard",
         ]
-        expected = [
-            BlockType.UnorderedList,
-            BlockType.Paragraph,
-            BlockType.Quote,
-            BlockType.Code,
-            BlockType.Heading,
-            BlockType.Heading,
-            BlockType.OrderedList
+        expected_types = [
+            UnorderedList,
+            Paragraph,
+            Quote,
+            Code,
+            Heading,
+            Heading,
+            OrderedList,
         ]
-        self.assertEqual(len(blocks), len(expected))
-        for block, expected in zip(blocks, expected):
-            self.assertEqual(expected, block_to_block_type(block))
+        self.assertEqual(len(blocks), len(expected_types))
+        for block, expected in zip(blocks, expected_types):
+            self.assertIsInstance(block_to_block_type(block), expected)
 
     def test_block_to_block_type_negative(self):
         blocks = [
@@ -62,7 +67,7 @@ class TestBlockToBlockType(unittest.TestCase):
             "* I was a list\n until I forgot what I was doing",
         ]
         for block in blocks:
-            self.assertEqual(BlockType.Paragraph, block_to_block_type(block))
+            self.assertIsInstance(block_to_block_type(block), Paragraph)
 
 
 if __name__ == "__main__":
