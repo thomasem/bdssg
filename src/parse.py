@@ -139,7 +139,9 @@ def text_to_textnodes(text: str) -> list[TextNode]:
 
 def markdown_to_blocks(markdown: str) -> list[str]:
     blocks = []
-    for part in markdown.split("\n\n"):
+    # Not critical, but trying to be kind to other OS' representation of
+    # newlines :)
+    for part in re.split(r'(?:\r?\n){2}', markdown):
         if part != "":
             blocks.append(part.strip())
     return blocks
