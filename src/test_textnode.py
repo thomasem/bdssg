@@ -1,7 +1,6 @@
 import enum
 import unittest
 
-
 from textnode import (
     ImageExtractor,
     LinkExtractor,
