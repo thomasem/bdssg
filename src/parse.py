@@ -1,7 +1,9 @@
+from abc import ABC, abstractmethod
 from enum import Enum
 import re
 
 from textnode import TextNode, TextType
+from htmlnode import HTMLNode, ParentNode
 
 
 class BlockType(Enum):
@@ -13,22 +15,20 @@ class BlockType(Enum):
     OrderedList = "ordered_list"
 
 
-# TODO: Consider Extract classes that encapsulate the logic for converting
-# to a TextNode, which would help handle cases where the extract isn't a
-# tuple[str, str]
-
-
-class Extractor:
+class Extractor(ABC):
+    @abstractmethod
     def extract(self, text: str) -> list[tuple[str, str]]:
-        raise NotImplementedError
+        pass
 
-    def string_from_extract(self, extract: tuple[str, str]) -> str:
-        # NOTE: This is a perfect candidate for Extract classes that format
-        # themselves for further use
-        raise NotImplementedError
+    @staticmethod
+    @abstractmethod
+    def string_from_extract(extract: tuple[str, str]) -> str:
+        pass
 
-    def text_type(self) -> TextType:
-        raise NotImplementedError
+    @staticmethod
+    @abstractmethod
+    def text_type() -> TextType:
+        pass
 
 
 class ImageExtractor(Extractor):
@@ -37,10 +37,12 @@ class ImageExtractor(Extractor):
     def extract(self, text: str) -> list[tuple[str, str]]:
         return re.findall(self.re_mask, text)
 
-    def string_from_extract(self, extract: tuple[str, str]) -> str:
+    @staticmethod
+    def string_from_extract(extract: tuple[str, str]) -> str:
         return f"![{extract[0]}]({extract[1]})"
 
-    def text_type(self) -> TextType:
+    @staticmethod
+    def text_type() -> TextType:
         return TextType.Image
 
 
@@ -50,10 +52,12 @@ class LinkExtractor(Extractor):
     def extract(self, text: str) -> list[tuple[str, str]]:
         return re.findall(self.re_mask, text)
 
-    def string_from_extract(self, extract: tuple[str, str]) -> str:
+    @staticmethod
+    def string_from_extract(extract: tuple[str, str]) -> str:
         return f"[{extract[0]}]({extract[1]})"
 
-    def text_type(self) -> TextType:
+    @staticmethod
+    def text_type() -> TextType:
         return TextType.Link
 
 
