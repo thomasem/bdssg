@@ -1,7 +1,7 @@
-from typing import Any, TypeVar
+import typing
 
 
-HTMLNodeType = TypeVar('HTMLNodeType', bound='HTMLNode')
+HTMLNodeType = typing.TypeVar('HTMLNodeType', bound='HTMLNode')
 
 
 class HTMLNode:
@@ -24,7 +24,7 @@ class HTMLNode:
             prop_string += f' {key}="{value}"'
         return prop_string
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: typing.Any) -> bool:
         if not isinstance(other, HTMLNode):
             return NotImplemented
         return all([
