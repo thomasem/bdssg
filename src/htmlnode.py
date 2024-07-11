@@ -63,7 +63,6 @@ class LeafNode(HTMLNode):
         return f"LeafNode({self.tag}, {self.value}, {self.props})"
 
 
-
 class ParentNode(HTMLNode):
     tag_required_error = "tag required for ParentNode"
     children_required_error = "children required for ParentNode"

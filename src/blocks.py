@@ -6,9 +6,15 @@ import htmlnode as hn
 import textnode as tn
 
 
+BACKTICKS = "```"
+
+
 class Block(abc.ABC):
-    def __init__(self, text: str):
-        self.text = text
+    def __init__(self, text: str, strict: bool = True):
+        if strict and not self.matches(text):
+            err = f"unexpected value for {type(self).__name__} block"
+            raise ValueError(err)
+        self.raw = text
 
     @staticmethod
     @abc.abstractmethod
@@ -27,43 +33,45 @@ class Paragraph(Block):
         return True
 
     def to_html_node(self) -> hn.HTMLNode:
-        children = []
-        nodes = tn.text_to_textnodes(self.text)
-        for node in nodes:
-            children.append(node.to_html_node())
-        return hn.ParentNode('p', children=children)
+        return hn.ParentNode('p', children=text_to_children(self.raw.strip()))
 
 
 class Heading(Block):
     @staticmethod
     def matches(text: str) -> bool:
+        # starts with 1-6 '#' characters, followed by a space
         return re.match(r'^#{1,6}\ ', text) is not None
 
     def to_html_node(self) -> hn.HTMLNode:
         level = 1
-        match = re.match('^#+', self.text)
-        if match:
-            level = match.span()[1]
-        children = []
-        for node in tn.text_to_textnodes(self.text):
-            children.append(node.to_html_node())
+        # calculate level by finding when the '# character stops showing up
+        for i in range(len(self.raw)):
+            if self.raw[i] != '#':
+                break
+            level = i + 1
+        # Add 1 to account for space before text
+        children = text_to_children(self.raw[level:].strip())
         return hn.ParentNode(f'h{level}', children=children)
 
 
 class Code(Block):
     @staticmethod
     def matches(text: str) -> bool:
-        backticks = '```'
-        return text.startswith(backticks) and text.endswith(backticks)
+        # starts and ends with backticks
+        return text.startswith(BACKTICKS) and text.endswith(BACKTICKS)
 
     def to_html_node(self) -> hn.HTMLNode:
-        code = hn.LeafNode('code', self.text)
+        trim = len(BACKTICKS)
+        # trim backticks on either side and remove any whitespace to get
+        # a clean block
+        code = hn.LeafNode('code', self.raw[trim:-trim].strip())
         return hn.ParentNode('pre', children=[code])
 
 
 class Quote(Block):
     @staticmethod
     def matches(text: str) -> bool:
+        # all lines must start with '>' character
         lines = text.splitlines()
         if len(lines) < 1:
             return False
@@ -73,12 +81,20 @@ class Quote(Block):
         return True
 
     def to_html_node(self) -> hn.HTMLNode:
-        return hn.LeafNode('blockquote', self.text)
+        children = []
+        # NOTE: it may also come to pass that we need to strip the first line,
+        # but browsers these days seem to be OK with leading spaces in some
+        # scenarios, so let's leave for now...
+        for line in self.raw.splitlines():
+            # trim '>' character in each line
+            children.extend(text_to_children(line[1:]))
+        return hn.ParentNode('blockquote', children=children)
 
 
 class UnorderedList(Block):
     @staticmethod
     def matches(text: str) -> bool:
+        # all lines must start with a '*' or '-' and a space
         lines = text.splitlines()
         if len(lines) < 1:
             return False
@@ -89,15 +105,17 @@ class UnorderedList(Block):
 
     def to_html_node(self) -> hn.HTMLNode:
         children = []
-        for node in tn.text_to_textnodes(self.text):
-            children.append(
-                hn.ParentNode('li', children=[node.to_html_node()]))
+        for line in self.raw.splitlines():
+            # trim '*' or '-' and extra space
+            children.extend(text_to_children(line[1:].strip(), 'li'))
         return hn.ParentNode('ul', children=children)
 
 
 class OrderedList(Block):
     @staticmethod
     def matches(text: str) -> bool:
+        # first line must start with '1. ' and all lines after must be a
+        # number with a period and a space
         lines = text.splitlines()
         if len(lines) < 1 or not lines[0].startswith('1. '):
             return False
@@ -109,28 +127,59 @@ class OrderedList(Block):
 
     def to_html_node(self) -> hn.HTMLNode:
         children = []
-        for node in tn.text_to_textnodes(self.text):
-            children.append(hn.ParentNode('li', children=[node.to_html_node()]))
+        for line in self.raw.splitlines():
+            trim = 0
+            for i in range(len(line)):
+                if line[i] == '.':
+                    trim = i + 1
+                    break
+            # trim everything up to the first period and extra space
+            children.extend(text_to_children(line[trim:].strip(), 'li'))
         return hn.ParentNode('ol', children=children)
 
 
-def markdown_to_block_strings(markdown: str) -> list[str]:
-    blocks = []
-    # Not critical, but trying to be kind to other OS' representation of
-    # newlines :)
-    for part in re.split(r'(?:\r?\n){2}', markdown):
-        if part != "":
-            blocks.append(part.strip())
-    return blocks
+def text_to_children(text: str, tag: str | None = None) -> list[hn.HTMLNode]:
+    """Convert text to TextNodes and then child HTMLNodes
+    """
+    children = []
+    for node in tn.text_to_textnodes(text):
+        children.append(node.to_html_node())
+    if tag:
+        return [hn.ParentNode(tag, children=children)]
+    return children
 
 
 def block_to_block_type(text: str) -> Block:
-    """This function will discover the type of markdown block that's passed
-    in, returning the appropriate Block object for later use. We can assume
-    leading / trailing whitespace is already removed from the
-    markdown_to_blocks() call.
+    """Find appropriate Block class and initialize for each block
     """
     for block_type in (Heading, Code, Quote, UnorderedList, OrderedList):
         if block_type.matches(text):
-            return block_type(text)
+            # we can skip the constructor check since we already checked
+            return block_type(text, strict=False)
     return Paragraph(text)
+
+
+def markdown_to_block_strings(markdown: str) -> list[str]:
+    """Split full markdown document into block strings to be evaluated later
+    """
+    # Not critical, but trying to be kind to other OS' representation of
+    # newlines. This method is also fairly naive and disallows things like
+    # extra newlines in codeblocks as it would split up the block erroneously
+    parts = re.split(r'(?:\r?\n){2}', markdown)
+    blocks = []
+    for i in range(len(parts)):
+        if parts[i] == "":
+            continue
+        blocks.append(parts[i].strip())
+    return blocks
+
+
+def markdown_to_html_node(markdown: str) -> hn.HTMLNode:
+    """Take full markdown document and make necessary calls to assemble an
+    HTMLNode tree, then return the Parent div that wraps all of it
+    """
+    block_strings = markdown_to_block_strings(markdown)
+    children = []
+    for block_string in block_strings:
+        children.append(block_to_block_type(block_string).to_html_node())
+    return hn.ParentNode('div', children=children)
