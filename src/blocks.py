@@ -43,13 +43,13 @@ class Heading(Block):
         return re.match(r'^#{1,6}\ ', text) is not None
 
     def to_html_node(self) -> hn.HTMLNode:
+        # not likely we'd get this far without it at least being an h1
         level = 1
         # calculate level by finding when the '# character stops showing up
         for i in range(len(self.raw)):
             if self.raw[i] != '#':
                 break
             level = i + 1
-        # Add 1 to account for space before text
         children = text_to_children(self.raw[level:].strip())
         return hn.ParentNode(f'h{level}', children=children)
 
@@ -63,7 +63,8 @@ class Code(Block):
     def to_html_node(self) -> hn.HTMLNode:
         trim = len(BACKTICKS)
         # trim backticks on either side and remove any whitespace to get
-        # a clean block
+        # a clean block, and we aren't parsing any further because it should
+        # be pre-formatted, hence the <pre> tag
         code = hn.LeafNode('code', self.raw[trim:-trim].strip())
         return hn.ParentNode('pre', children=[code])
 
