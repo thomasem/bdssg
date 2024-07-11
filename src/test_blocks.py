@@ -145,9 +145,10 @@ class TestBlockTypes(unittest.TestCase):
 """
         node = Quote(text.strip()).to_html_node()
         expected = hn.ParentNode('blockquote', children=[
-            hn.LeafNode(None, " Failure is success in progress."),
-            hn.LeafNode(None, (" A clever person solves a problem."
-                               " A wise person avoids it.")),
+            hn.LeafNode(None,
+            "Failure is success in progress."
+            " A clever person solves a problem."
+            " A wise person avoids it."),
         ])
         self.assertEqual(node, expected)
 
@@ -245,8 +246,7 @@ and now a code block
                 hn.LeafNode(None, "A silly paragraph")
             ]),
             hn.ParentNode('blockquote', children=[
-                hn.LeafNode(None, "a block quote"),
-                hn.LeafNode(None, " with just a little more")
+                hn.LeafNode(None, "a block quote with just a little more")
             ]),
             hn.ParentNode('pre', children=[
                 hn.LeafNode('code', "and now a code block")

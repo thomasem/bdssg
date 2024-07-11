@@ -83,13 +83,11 @@ class Quote(Block):
 
     def to_html_node(self) -> hn.HTMLNode:
         children = []
-        # NOTE: it may also come to pass that we need to strip the first line,
-        # but browsers these days seem to be OK with leading spaces in some
-        # scenarios, so let's leave for now...
+        stripped_lines = []
         for line in self.raw.splitlines():
-            # trim '>' character in each line
-            children.extend(text_to_children(line[1:]))
-        return hn.ParentNode('blockquote', children=children)
+            stripped_lines.append(line[1:].strip())
+        content = " ".join(stripped_lines)
+        return hn.ParentNode('blockquote', children=text_to_children(content))
 
 
 class UnorderedList(Block):
