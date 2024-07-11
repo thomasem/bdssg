@@ -30,10 +30,8 @@ def main():
 
     copy(static_path, public_path)
 
-    index_md_path = os.path.join(content_path, "index.md")
-    index_html_path = os.path.join(public_path, "index.html")
     template_path = os.path.join(current_path, "template.html")
-    generate.generate_page(index_md_path, index_html_path, template_path)
+    generate.generate_pages(content_path, public_path, template_path)
 
 
 if __name__ == "__main__":
