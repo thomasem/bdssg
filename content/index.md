@@ -2,6 +2,8 @@
 
 **I like Tolkien**. Read my [first post here](/majesty)
 
+And bonus [recipes](/recipes)!
+
 > All that is gold does not glitter
 
 ## Reasons I like Tolkien

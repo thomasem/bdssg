@@ -41,7 +41,6 @@ def generate_page(from_path: str, dest_path: str, template_path: str):
 
 
 def generate_pages(src_dir: str, dest_dir: str, template_path: str):
-    print("dest_dir:", dest_dir)
     if not os.path.exists(dest_dir):
         os.mkdir(dest_dir)
 
@@ -49,7 +48,6 @@ def generate_pages(src_dir: str, dest_dir: str, template_path: str):
         src_path = os.path.join(src_dir, basename)
         if os.path.isdir(src_path):
             dest_path = os.path.join(dest_dir, basename)
-            print("dest_path:", dest_path)
             generate_pages(src_path, dest_path, template_path)
         else:
             filename = pathlib.Path(basename).stem + ".html"
