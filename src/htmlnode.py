@@ -1,12 +1,6 @@
-import typing
-
-
-HTMLNodeType = typing.TypeVar('HTMLNodeType', bound='HTMLNode')
-
-
 class HTMLNode:
     def __init__(self, tag: str | None = None, value: str | None = None,
-                 children: list[HTMLNodeType] | None = None,
+                 children: list['HTMLNode'] | None = None,
                  props: dict[str, str] | None = None):
         self.tag = tag
         self.value = value
@@ -24,7 +18,7 @@ class HTMLNode:
             prop_string += f' {key}="{value}"'
         return prop_string
 
-    def __eq__(self, other: typing.Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, HTMLNode):
             return NotImplemented
         return all([

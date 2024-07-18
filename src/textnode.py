@@ -1,7 +1,6 @@
 import abc
 import enum
 import re
-import typing
 
 import htmlnode as hn
 
@@ -26,7 +25,7 @@ class TextNode:
         self.text_type = text_type
         self.url = url
 
-    def __eq__(self, other: typing.Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, TextNode):
             return NotImplemented
         return all([
